@@ -163,6 +163,11 @@ produção no Firebase Authentication:
 Autorize apenas os domínios que você controla. Endereços de preview da Vercel
 são diferentes do domínio de produção; não use curingas para autorizá-los.
 
+O projeto é estático (HTML, CSS e JavaScript), sem backend FastAPI. O arquivo
+`vercel.json` define o framework como **Other** para a Vercel publicar os
+arquivos diretamente, sem procurar um entrypoint Python. Nas configurações do
+projeto Vercel, mantenha a **Root Directory** na pasta raiz do repositório.
+
 ---
 
 ## Estrutura do banco de dados

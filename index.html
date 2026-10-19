@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OficinaFlux — Gestão para oficina de motos e carros</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css?v=20260616-pagamento-parcial-cobranca">
+  <link rel="stylesheet" href="src/gestao.css?v=20260605-etapas-obra">
+  <link rel="stylesheet" href="src/auth.css?v=20260612-mobile-header-menu">
+  <link rel="stylesheet" href="src/insumos_obras.css?v=20260618-relatorios-obra-laranja">
+  <link rel="icon" href="src/assets/obraflux-favicon-rounded.png?v=20260612-rounded-favicon" type="image/png">
+  <link rel="shortcut icon" href="src/assets/obraflux-favicon-rounded.png?v=20260612-rounded-favicon" type="image/png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ===== LOADING INICIAL ===== -->
+  <div id="app-loading">
+    <div class="loading-brand" aria-label="ObraFlux - Gestão para oficinas">
+      <img class="loading-brand-icon" src="landing-obraflux/assets/obraflux-somentelogo-crop.png" alt="">
+      <div class="loading-brand-text">
+        <strong>Oficina<span>Flux</span></strong>
+        <small>Gest&atilde;o para oficinas</small>
+      </div>
+    </div>
+    <div class="loading-progress" aria-label="Carregando">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+
+  <!-- ===== TELA DE LOGIN ===== -->
+  <div id="tela-login">
+    <div class="login-card">
+      <div class="login-hero">
+        <div class="login-kicker">Gest&atilde;o completa para oficinas</div>
+        <img class="login-logo-img" src="src/assets/obraflux-login-logo-transparente.png" alt="ObraFlux">
+        <p class="login-descricao">Organize clientes, motos e carros, ordens de servi&ccedil;o, pe&ccedil;as, agenda e financeiro em um s&oacute; lugar.</p>
+        <div class="login-tags" aria-label="M&oacute;dulos do sistema">
+          <span>Or&ccedil;amentos</span>
+          <span>Ordens de servi&ccedil;o</span>
+          <span>Pe&ccedil;as</span>
+          <span>Financeiro</span>
+        </div>
+      </div>
+      <div class="login-titulo">Acesse sua conta</div>
+      <div id="login-erro" class="login-erro"></div>
+      <div class="login-campo">
+        <label for="login-email">E-mail</label>
+        <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="username" inputmode="email" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$">
+      </div>
+      <div class="login-campo">
+        <label for="login-senha">Senha</label>
+        <input type="password" id="login-senha" placeholder="********" autocomplete="current-password">
+      </div>
+      <button class="btn-login" id="btn-login">
+        <div class="login-spinner"></div>
+        <span class="login-texto">Entrar</span>
+      </button>
+      <div class="login-rodape">
+        Acesso somente para usu&aacute;rios autorizados.<br>
+        Contas s&atilde;o criadas pelo administrador do sistema.
+        <div class="login-dev">Desenvolvido por <a href="https://www.sanojsistemas.com.br" target="_blank" rel="noopener">Sanoj Sistemas</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONTEÚDO PRINCIPAL (visível após login) ===== -->
+  <div id="app-conteudo">
+
+    <nav>
+      <div class="nav-logo-area nav-logo-placeholder" aria-hidden="true">
+        <input type="file" id="input-logo" accept="image/png,image/jpeg,image/svg+xml" style="display:none"
+          onchange="carregarLogo(event)">
+      </div>
+      <div class="nav-tabs">
+        <button class="nav-home-btn nav-tab ativo" onclick="mudarAba('inicio', this)" title="Início ObraFlux" aria-label="Início ObraFlux"><img src="landing-obraflux/assets/obraflux-somentelogo-crop.png" alt=""></button>
+        <button class="nav-tab" onclick="mudarAba('leads', this)">Solicitações</button>
+        <button class="nav-tab" onclick="mudarAba('orcamento', this)">Novo Orçamento</button>
+        <button class="nav-tab" onclick="mudarAba('historico', this)">Histórico</button>
+        <button class="nav-tab" onclick="mudarAba('gestao', this)">Gestão da Oficina</button>
+        <button class="nav-tab" onclick="mudarAba('financeiro', this)">Fluxo Financeiro</button>
+        <button class="nav-tab nav-acessos-tab" onclick="mudarAba('acessos', this)">Acessos</button>
+        <button class="nav-tab nav-guia-tab" onclick="mudarAba('guia', this)">Guia de Uso</button>
+        <button class="nav-tab nav-admin-tab" style="display:none" onclick="mudarAba('admin', this)">Admin Master</button>
+      </div>
+      <!-- Usuário logado + botão sair -->
+      <div class="nav-usuario">
+        <div class="nav-logo-area nav-logo-direita">
+          <div class="nav-brand">
+            <img id="nav-logo-img" src="" alt="Logo" class="nav-logo-img" style="display:none">
+            <div class="nav-brand-texto">
+              <div class="logo-nav" id="nav-logo-texto">SUA <span>OFICINA</span></div>
+              <div class="nav-marca-sub" id="nav-marca-sub"></div>
+            </div>
+          </div>
+          <button class="btn-logo-remover" id="btn-remover-logo" onclick="removerLogo()" title="Remover logo"
+            style="display:none">×</button>
+        </div>
+        <div class="config-menu-wrap">
+          <button class="btn-config" type="button" title="Configurações" aria-label="Configurações">⚙</button>
+          <div class="config-menu">
+            <div class="config-title-help">
+              <div class="config-menu-titulo">Configurações</div>
+              <span class="tooltip-wrap tooltip-configuracoes" data-tooltip="Configure o nome, contato, logotipo e link da oficina. Esses dados aparecem nos orçamentos, cobranças e relatórios.">
+                <button type="button" class="manual-save-help-btn" aria-label="Ajuda sobre configurações">?</button>
+              </span>
+            </div>
+            <div class="config-email-info">
+              <span>E-mail da conta</span>
+              <strong id="config-user-email"></strong>
+            </div>
+            <label class="config-campo">
+              <span>Nome da oficina</span>
+              <input type="text" id="config-empresa" placeholder="Ex: Oficina do João">
+            </label>
+            <label class="config-campo">
+              <span>Local</span>
+              <input type="text" id="config-local" placeholder="Cidade / UF">
+            </label>
+            <label class="config-campo">
+              <span>Contato</span>
+              <div class="config-contato-row">
+                <input type="text" id="config-contato" placeholder="Telefone, WhatsApp ou e-mail">
+                <label class="config-whatsapp" title="Marcar contato como WhatsApp">
+                  <input type="checkbox" id="config-contato-whatsapp">
+                  <span>WhatsApp</span>
+                </label>
+              </div>
+            </label>
+            <label class="config-campo">
+              <span>Proprietário / gestor</span>
+              <input type="text" id="config-gestor" placeholder="Nome do responsável">
+            </label>
+            <label class="config-campo">
+              <span>Responsável técnico</span>
+              <input type="text" id="config-responsavel-tecnico" placeholder="Nome do responsável técnico">
+            </label>
+            <label class="config-campo">
+              <span>Registro profissional (opcional)</span>
+              <input type="text" id="config-crea" placeholder="Número de registro ou credencial">
+            </label>
+            <label class="config-campo">
+              <span>Link/URL</span>
+              <input type="url" id="config-url" placeholder="Site, Instagram ou link público">
+            </label>
+            <div class="config-acoes">
+              <label class="btn-config-logo" for="input-logo">Logo</label>
+              <button class="btn-config-salvar" type="button" onclick="salvarConfiguracoesEmpresa()">Salvar</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn-logout" id="btn-logout">Sair</button>
+      </div>
+    </nav>
+
+
+    <!-- ===== ABA: INÍCIO OBRAFLUX ===== -->
+    <div id="aba-inicio" class="aba ativo">
+      <div class="inicio-wrapper">
+        <section class="inicio-hero">
+          <div class="inicio-brand">
+            <img src="landing-obraflux/assets/obraflux-somentelogo-crop.png" alt="ObraFlux">
+            <div>
+              <span>OficinaFlux</span>
+              <small>Gestão para oficinas</small>
+            </div>
+          </div>
+          <div class="inicio-empresa">
+            <p id="inicio-saudacao">Bem-vindo</p>
+            <h1 id="inicio-empresa-nome">Sua oficina</h1>
+            <div id="inicio-empresa-meta" class="inicio-meta"></div>
+          </div>
+        </section>
+
+        <section class="inicio-kpis" id="inicio-kpis"></section>
+
+        <section class="inicio-grid">
+          <div class="inicio-panel">
+            <div class="inicio-panel-topo">
+              <h2>Serviços agendados para hoje</h2>
+              <button type="button" onclick="mudarAba('gestao', document.querySelector('.nav-tab[onclick*=\'gestao\']'));mudarSubAba('calendario', document.querySelector('.gestao-sub-tab[onclick*=\'calendario\']'))">Abrir agenda</button>
+            </div>
+            <div id="inicio-agenda" class="inicio-lista"></div>
+          </div>
+          <div class="inicio-panel">
+            <div class="inicio-panel-topo">
+              <h2>Resumo financeiro</h2>
+              <button type="button" onclick="mudarAba('financeiro', document.querySelector('.nav-tab[onclick*=\'financeiro\']'))">Ver fluxo</button>
+            </div>
+            <div id="inicio-financeiro" class="inicio-financeiro"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===== ABA: ORÇAMENTO ===== -->
+    <div id="aba-orcamento" class="aba">
+      <div class="orcamento-wrapper">
+        <div class="cartao" id="orca-cartao">
+
+          <!-- HEADER -->
+          <div class="orca-header">
+            <div class="logo-bloco">
+              <img id="header-logo-img" src="" alt="Logo" class="header-logo-img" style="display:none">
+              <div id="header-logo-texto">
+                <div class="logo-grande">SUA <span>OFICINA</span></div>
+              </div>
+              <div class="logo-sub" id="header-marca-sub">Oficina de motos e carros</div>
+            </div>
+            <div class="orca-num-bloco">
+              <span class="tooltip-wrap tooltip-doc-tipo" data-tooltip="Alterna entre modo or&ccedil;amento ou modo relat&oacute;rio de cobran&ccedil;a. Cada tipo ser&aacute; salvo em seu hist&oacute;rico distinto.">
+                <button type="button" class="orca-tipo-btn" id="btn-tipo-documento" onclick="toggleTipoDocumento()">
+                  Or&ccedil;amento
+                </button>
+              </span>
+              <div class="orca-num-valor" id="display-numero">#001</div>
+              <div id="display-rev"></div>
+            </div>
+          </div>
+
+          <!-- DADOS DO CLIENTE -->
+          <div class="secao">
+            <div class="secao-titulo">Cliente e veículo</div>
+            <div class="grid-2">
+              <div class="campo">
+                <label>Cliente</label>
+                <input type="text" id="campo-cliente" placeholder="Nome completo ou razão social">
+              </div>
+              <div class="campo">
+                <label>Serviço solicitado</label>
+                <input type="text" id="campo-obra" placeholder="Ex.: revisão, troca de embreagem, diagnóstico">
+              </div>
+              <div class="campo">
+                <label>Contato do cliente</label>
+                <input type="text" id="campo-endereco" placeholder="Telefone, WhatsApp ou e-mail">
+              </div>
+              <div class="campo">
+                <label>Estado</label>
+                <select id="campo-estado">
+                  <option value="">Selecione o estado...</option>
+                  <option>AC</option>
+                  <option>AL</option>
+                  <option>AP</option>
+                  <option>AM</option>
+                  <option>BA</option>
+                  <option>CE</option>
+                  <option>DF</option>
+                  <option>ES</option>
+                  <option>GO</option>
+                  <option>MA</option>
+                  <option>MT</option>
+                  <option>MS</option>
+                  <option>MG</option>
+                  <option>PA</option>
+                  <option>PB</option>
+                  <option>PR</option>
+                  <option>PE</option>
+                  <option>PI</option>
+                  <option>RJ</option>
+                  <option>RN</option>
+                  <option>RS</option>
+                  <option>RO</option>
+                  <option>RR</option>
+                  <option selected>SC</option>
+                  <option>SP</option>
+                  <option>SE</option>
+                  <option>TO</option>
+                </select>
+              </div>
+              <div class="campo">
+                <label id="label-campo-data">Data do Orçamento</label>
+                <input type="date" id="campo-data">
+              </div>
+              <div class="campo">
+                <label id="label-campo-validade">Validade do Orçamento</label>
+                <input type="date" id="campo-validade">
+              </div>
+            </div>
+            <div class="secao-titulo" style="margin-top:1rem;">Identificação do veículo</div>
+            <div class="grid-2">
+              <div class="campo">
+                <label for="campo-veiculo-tipo">Tipo</label>
+                <select id="campo-veiculo-tipo">
+                  <option value="">Selecione...</option>
+                  <option value="Carro">Carro</option>
+                  <option value="Moto">Moto</option>
+                </select>
+              </div>
+              <div class="campo">
+                <label for="campo-veiculo-modelo">Marca e modelo</label>
+                <input type="text" id="campo-veiculo-modelo" placeholder="Ex.: Honda Civic, Yamaha Fazer">
+              </div>
+              <div class="campo">
+                <label for="campo-veiculo-placa">Placa</label>
+                <input type="text" id="campo-veiculo-placa" placeholder="ABC1D23" maxlength="8">
+              </div>
+              <div class="campo">
+                <label for="campo-veiculo-ano">Ano</label>
+                <input type="number" id="campo-veiculo-ano" min="1900" max="2100" placeholder="Ex.: 2022">
+              </div>
+              <div class="campo">
+                <label for="campo-veiculo-km">Quilometragem (km)</label>
+                <input type="number" id="campo-veiculo-km" min="0" step="1" placeholder="Ex.: 45000">
+              </div>
+            </div>
+          </div>
+
+          <!-- TABELA DE ITENS -->
+          <div class="secao">
+            <div class="secao-titulo">Itens do Orçamento</div>
+            <div class="tabela-wrapper">
+              <table id="tabela-itens">
+                <thead>
+                  <tr>
+                    <th class="col-desc">Descrição do Serviço</th>
+                    <th class="col-area">Qtd. / Unidade</th>
+                    <th class="col-material">Peças / materiais</th>
+                    <th class="col-qtd">Custo peças</th>
+                    <th class="col-unit">Mão de obra</th>
+                    <th class="col-subtmat">Total peças</th>
+                    <th class="col-subtmao">Total M.O.</th>
+                    <th class="col-total">Total (R$)</th>
+                    <th class="col-acao"></th>
+                  </tr>
+                </thead>
+                <tbody id="linhas-tbody"></tbody>
+              </table>
+            </div>
+            <div class="btn-add-row">
+              <span class="tooltip-wrap" data-tooltip="Crie um novo item na lista. Pode ser usado para criar um novo item na lista ap&oacute;s inserir uma imagem.">
+                <button class="btn-add-linha" onclick="adicionarLinha()">
+                  <span style="font-size:18px;line-height:1">+</span> Adicionar Item
+                </button>
+              </span>
+              <span class="tooltip-wrap" data-tooltip="Cria um cabeçalho para separar serviços ou organizar o orçamento.">
+                <button class="btn-add-cabecalho" onclick="adicionarCabecalho()">
+                  <span style="font-size:15px;line-height:1">+</span> Adicionar Se&ccedil;&atilde;o
+                </button>
+              </span>
+              <span class="tooltip-wrap" data-tooltip="Adiciona uma imagem abaixo do &uacute;ltimo item criado na tabela. &Eacute; ideal para indicar um detalhe da &aacute;rea ou algo espec&iacute;fico referente aos itens acima.">
+                <button class="btn-add-imagem" onclick="document.getElementById('input-imagem-orcamento').click()">
+                  <span style="font-size:15px;line-height:1">+</span> Adicionar Imagem
+                </button>
+              </span>
+              <span class="tooltip-wrap" data-tooltip="Permitir&aacute; escolher algum item da lista j&aacute; criado e far&aacute; uma clonagem do item para indicar um m&eacute;todo alternativo para o servi&ccedil;o, permitindo alterar materiais e custos de material e m&atilde;o de obra, bem como far&aacute; o c&aacute;lculo separado apenas desta op&ccedil;&atilde;o.">
+                <button class="btn-add-opcao" onclick="toggleMenuOpcao()">
+                  <span style="font-size:15px;line-height:1">+</span> Adicionar Op&ccedil;&atilde;o
+                </button>
+              </span>
+              <input type="file" id="input-imagem-orcamento" accept="image/png,image/jpeg" style="display:none"
+                onchange="handleImagemOrcamento(this)">
+              <div class="menu-opcao" id="menu-opcao" style="display:none">
+                <select id="select-opcao-base"></select>
+                <button type="button" onclick="adicionarOpcaoSelecionada()">Criar Op&ccedil;&atilde;o</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TOTAIS -->
+          <div class="totais-bloco" id="bloco-totais">
+            <div class="totais-linha">
+              <span class="label">Subtotal de peças</span>
+              <span class="valor" id="disp-subtotal-material">R$ 0,00</span>
+            </div>
+            <div class="totais-linha">
+              <span class="label">Subtotal Mão de Obra</span>
+              <span class="valor" id="disp-subtotal-mao">R$ 0,00</span>
+            </div>
+            <div class="totais-linha principal">
+              <span class="label">TOTAL GERAL</span>
+              <span class="valor" id="disp-total">R$ 0,00</span>
+            </div>
+            <div class="opcoes-totais" id="opcoes-totais"></div>
+          </div>
+
+          <!-- DESCONTO -->
+          <div class="desconto-area">
+            <span class="tooltip-wrap tooltip-aplicar-desconto" data-tooltip="Abre a tabela de desconto. Informe o valor desejado ou o percentual para material e mão de obra; o sistema calcula automaticamente o desconto em reais, o percentual e o total final.">
+              <button class="btn-desconto" onclick="toggleDesconto()">
+                <span>%</span> Aplicar Desconto
+              </button>
+            </span>
+            <div class="desconto-form desconto-form-tabela" id="form-desconto">
+              <div class="desconto-tabela-wrap">
+                <table class="desconto-tabela">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Valor atual</th>
+                      <th>Valor desejado</th>
+                      <th>Desconto em R$</th>
+                      <th>Desconto %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Subtotal de peças</td>
+                      <td id="desc-atual-material">R$ 0,00</td>
+                      <td>
+                        <div class="desconto-moeda-input">
+                          <span>R$</span>
+                          <input type="number" id="input-desconto-material-valor" min="0" step="0.01" placeholder="0,00"
+                            oninput="atualizarDescontoPorValor('material')">
+                        </div>
+                      </td>
+                      <td id="desc-valor-material">R$ 0,00</td>
+                      <td>
+                        <div class="desconto-percent-input">
+                          <input type="number" id="input-desconto-material" min="0" max="99.99" step="0.01" placeholder="0"
+                            oninput="atualizarDescontoPorPercentual('material')">
+                          <span>%</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Subtotal Mão de Obra</td>
+                      <td id="desc-atual-mao">R$ 0,00</td>
+                      <td>
+                        <div class="desconto-moeda-input">
+                          <span>R$</span>
+                          <input type="number" id="input-desconto-mao-valor" min="0" step="0.01" placeholder="0,00"
+                            oninput="atualizarDescontoPorValor('maoObra')">
+                        </div>
+                      </td>
+                      <td id="desc-valor-mao">R$ 0,00</td>
+                      <td>
+                        <div class="desconto-percent-input">
+                          <input type="number" id="input-desconto-mao" min="0" max="99.99" step="0.01" placeholder="0"
+                            oninput="atualizarDescontoPorPercentual('maoObra')">
+                          <span>%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="desconto-acoes">
+                <button class="btn-aplicar-desc" onclick="aplicarDesconto()">Calcular Desconto</button>
+                <button class="btn-mini ver" onclick="limparDesconto()">Limpar</button>
+              </div>
+            </div>
+            <div class="desconto-resultados" id="resultados-desconto">
+              <div class="desc-cartoes" id="desc-cartoes"></div>
+            </div>
+          </div>
+
+          <!-- OBSERVAÇÕES -->
+          <div class="secao">
+            <div class="secao-titulo">Observações e diagnóstico</div>
+            <div class="obs-opcoes" id="obs-opcoes"></div>
+            <div class="obs-preset-actions">
+              <button type="button" class="btn-mini ver" onclick="salvarObservacaoManualPreset()">Salvar preset</button>
+            </div>
+            <div class="campo">
+              <textarea id="campo-obs" rows="4"
+                placeholder="Ex.: diagnóstico sujeito à desmontagem; peças adicionais serão aprovadas pelo cliente antes do reparo."></textarea>
+            </div>
+          </div>
+
+          <!-- FORMAS DE PAGAMENTO -->
+          <div class="desconto-area">
+            <span class="tooltip-wrap tooltip-pagamento" data-tooltip="Selecione dentre uma ou mais formas de pagamento ou descreva uma manualmente e a salve.">
+              <button class="btn-desconto" onclick="togglePagamento()">
+                <span>💳</span> Formas de Pagamento
+              </button>
+            </span>
+            <div class="desconto-form" id="form-pagamento">
+              <div class="pgto-opcoes-grupo">
+
+                <!-- 1 - A VISTA -->
+                <label class="pgto-opcao-item">
+                  <input type="checkbox" name="pgto-opcao" value="avista" id="pgto-avista" onchange="handlePgtoChange(this)">
+                  <span class="pgto-opcao-label">A VISTA</span>
+                </label>
+
+                <!-- 2 - MATERIAL A VISTA -->
+                <label class="pgto-opcao-item">
+                  <input type="checkbox" name="pgto-opcao" value="material_avista" id="pgto-material-avista" onchange="handlePgtoChange(this)">
+                  <span class="pgto-opcao-label">MATERIAL A VISTA</span>
+                </label>
+
+                <!-- 3 - MATERIAL: ENTRADA + SALDO -->
+                <div class="pgto-opcao-row">
+                  <label class="pgto-opcao-item">
+                    <input type="checkbox" name="pgto-opcao" value="material_entrada_saldo" id="pgto-material-ent" onchange="handlePgtoChange(this)">
+                    <span class="pgto-opcao-label">MATERIAL: ENTRADA + SALDO</span>
+                  </label>
+                  <div class="pgto-campos-inline" id="campos-material-ent" style="display:none;">
+                    <div class="pgto-campo-mini">
+                      <label>Entrada (%)</label>
+                      <input type="number" id="mat-entrada-pct" min="0" max="100" placeholder="ex: 30" oninput="calcularSaldo('mat')">
+                    </div>
+                    <div class="pgto-campo-mini">
+                      <label>Saldo (%)</label>
+                      <input type="number" id="mat-saldo-pct" min="0" max="100" placeholder="auto" readonly>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 4 - MÃO DE OBRA: ENTRADA + SALDO -->
+                <div class="pgto-opcao-row">
+                  <label class="pgto-opcao-item">
+                    <input type="checkbox" name="pgto-opcao" value="mao_entrada_saldo" id="pgto-mao-ent" onchange="handlePgtoChange(this)">
+                    <span class="pgto-opcao-label">MÃO DE OBRA: ENTRADA + SALDO</span>
+                  </label>
+                  <div class="pgto-campos-inline" id="campos-mao-ent" style="display:none;">
+                    <div class="pgto-campo-mini">
+                      <label>Entrada (%)</label>
+                      <input type="number" id="mao-entrada-pct" min="0" max="100" placeholder="ex: 30" oninput="calcularSaldo('mao')">
+                    </div>
+                    <div class="pgto-campo-mini">
+                      <label>Saldo (%)</label>
+                      <input type="number" id="mao-saldo-pct" min="0" max="100" placeholder="auto" readonly>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 5 - MÃO DE OBRA A VISTA -->
+                <label class="pgto-opcao-item">
+                  <input type="checkbox" name="pgto-opcao" value="mao_avista" id="pgto-mao-avista" onchange="handlePgtoChange(this)">
+                  <span class="pgto-opcao-label">MÃO DE OBRA A VISTA</span>
+                </label>
+
+                <!-- 6 - MATERIAL E MÃO DE OBRA: A COMBINAR -->
+                <label class="pgto-opcao-item">
+                  <input type="checkbox" name="pgto-opcao" value="a_combinar" id="pgto-a-combinar" onchange="handlePgtoChange(this)">
+                  <span class="pgto-opcao-label">MATERIAL E MÃO DE OBRA: A COMBINAR</span>
+                </label>
+
+                <div id="pgto-presets-manuais"></div>
+
+                <div class="pgto-manual-box">
+                  <input type="text" id="pgto-manual-texto" placeholder="Digite uma forma de pagamento personalizada">
+                  <label class="pgto-manual-check">
+                    <input type="checkbox" id="pgto-manual-salvar" checked>
+                    <span>Salvar como preset</span>
+                  </label>
+                  <button type="button" class="btn-mini ver" onclick="adicionarPagamentoManual()">Adicionar</button>
+                </div>
+
+              </div>
+              <div style="display:flex;gap:8px;margin-top:12px;">
+                <button class="btn-aplicar-desc" onclick="aplicarPagamento()">Confirmar</button>
+                <button class="btn-mini ver" onclick="limparPagamento()">Limpar</button>
+              </div>
+            </div>
+            <div class="desconto-resultados" id="resultados-pagamento">
+              <div class="desc-cartoes" id="pagamento-cartoes"></div>
+            </div>
+          </div>
+
+          <!-- AÇÕES -->
+          <div class="acoes-finais">
+            <span class="tooltip-wrap tooltip-gerar-pdf" data-tooltip="Abre a tela de preview para geração de PDF do orçamento. Escolha entre layout retrato ou paisagem.">
+              <button class="btn-laranja" onclick="abrirPreviewPDF()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14,2 14,8 20,8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <line x1="9" y1="15" x2="15" y2="15" />
+                </svg>
+                GERAR PDF
+              </button>
+            </span>
+            <span class="tooltip-wrap tooltip-salvar-orcamento" data-tooltip="Salva o orçamento no histórico de orçamentos. Se for uma revisão, ele será salvo automaticamente como revisão.">
+              <button class="btn-primario" onclick="salvarOrcamento()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17,21 17,13 7,13 7,21" />
+                  <polyline points="7,3 7,8 15,8" />
+                </svg>
+                Salvar Orçamento
+              </button>
+            </span>
+            <button class="btn-secundario" id="btn-salvar-como-novo" style="display:none" onclick="salvarComoNovoOrcamento()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14,2 14,8 20,8" />
+                <line x1="12" y1="11" x2="12" y2="17" />
+                <line x1="9" y1="14" x2="15" y2="14" />
+              </svg>
+              Salvar como Novo Or&ccedil;amento
+            </button>
+            <button class="btn-secundario" onclick="novoOrcamento()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Novo
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ABA: HISTÓRICO ===== -->
+    <div id="aba-historico" class="aba">
+      <div class="historico-wrapper">
+        <div class="hist-topo">
+          <div>
+            <div class="hist-title-help">
+              <div class="hist-titulo" id="hist-titulo">Histórico de Orçamentos</div>
+              <span class="tooltip-wrap tooltip-historico" data-tooltip="Consulte propostas e cobranças, acompanhe aprovações e pagamentos e localize documentos por cliente, número, placa ou serviço. As cobranças pagas compõem as entradas do fluxo financeiro.">
+                <button type="button" class="manual-save-help-btn" aria-label="Ajuda sobre hist&oacute;rico">?</button>
+              </span>
+            </div>
+            <div class="hist-tabs" role="tablist" aria-label="Tipo de histórico">
+              <button type="button" class="hist-tab ativo" id="hist-tab-orcamento" role="tab" aria-selected="true" onclick="setTipoHistorico('orcamento')">Orçamentos</button>
+              <button type="button" class="hist-tab" id="hist-tab-cobranca" role="tab" aria-selected="false" onclick="setTipoHistorico('cobranca')">Cobranças</button>
+            </div>
+          </div>
+          <input type="text" class="hist-busca" placeholder="Buscar por cliente, número..."
+            oninput="filtrarHistorico(this.value)">
+        </div>
+        <div id="hist-conteudo"></div>
+      </div>
+    </div>
+
+    <!-- ===== ABA: LEADS ===== -->
+    <div id="aba-leads" class="aba">
+      <div class="leads-wrapper">
+        <div class="leads-topo">
+          <div>
+            <div class="leads-kicker">Captação e triagem</div>
+            <h1>Solicitações de serviço</h1>
+            <p>Receba pedidos de orçamento, acompanhe o atendimento e transforme solicitações em ordens de serviço.</p>
+          </div>
+          <div class="leads-topo-acoes">
+            <button class="btn-secundario" type="button" onclick="inicializarLeads()">Atualizar</button>
+            <button class="btn-primario" type="button" onclick="abrirModalLead()">Novo Lead</button>
+          </div>
+        </div>
+
+        <section class="leads-config-card">
+          <div class="leads-config-head">
+            <div>
+              <h2>Formulário de solicitação de serviço</h2>
+              <p>Configure o formulário público para novos clientes da oficina.</p>
+            </div>
+            <label class="leads-switch">
+              <input type="checkbox" id="lead-config-ativo">
+              <span>Ativo</span>
+            </label>
+          </div>
+          <div class="leads-config-grid">
+            <label class="campo">
+              <span>Título público</span>
+              <input type="text" id="lead-config-titulo" placeholder="Agende seu atendimento">
+            </label>
+            <label class="campo">
+              <span>Origem padrão</span>
+              <input type="text" id="lead-config-origem" placeholder="Site">
+            </label>
+            <label class="campo leads-config-full">
+              <span>Descrição pública</span>
+              <textarea id="lead-config-descricao" rows="2" placeholder="Conte o que precisa no seu carro ou moto."></textarea>
+            </label>
+          </div>
+          <div class="leads-config-options">
+            <label><input type="checkbox" id="lead-config-endereco"> Solicitar bairro ou cidade</label>
+            <label><input type="checkbox" id="lead-config-mensagem" checked> Solicitar mensagem</label>
+          </div>
+          <div class="leads-public-row">
+            <label class="campo">
+              <span>Link público</span>
+              <input type="text" id="lead-public-link" readonly>
+            </label>
+            <button class="btn-secundario" type="button" onclick="copiarLinkLeads()">Copiar link</button>
+            <button class="btn-secundario" type="button" onclick="copiarEmbedLeads()">Copiar iframe</button>
+            <button class="btn-primario" type="button" onclick="salvarConfiguracaoLeads()">Salvar configuração</button>
+          </div>
+        </section>
+
+        <div id="leads-resumo" class="leads-resumo"></div>
+        <div id="leads-kanban" class="leads-kanban"></div>
+      </div>
+    </div>
+
+    <!-- ===== ABA: FLUXO FINANCEIRO ===== -->
+    <div id="aba-financeiro" class="aba">
+      <div class="financeiro-wrapper">
+        <div class="financeiro-topo">
+          <div>
+            <div class="financeiro-title-help">
+              <div class="financeiro-titulo">Fluxo Financeiro</div>
+              <span class="tooltip-wrap tooltip-financeiro" data-tooltip="Acompanhe recebimentos de cobranças pagas, compras de peças, despesas e custos da equipe. Compare meses e gere relatórios em PDF.">
+                <button type="button" class="manual-save-help-btn" aria-label="Ajuda sobre fluxo financeiro">?</button>
+              </span>
+            </div>
+            <div class="financeiro-subtitulo">Acompanhe recebimentos, compras de peças, despesas e custos da equipe.</div>
+          </div>
+          <div class="financeiro-filtros">
+            <button type="button" class="fin-pdf-btn" onclick="gerarRelatorioFinanceiroPDF()">
+              Gerar relat&oacute;rio PDF
+            </button>
+            <label>
+              <span>Mês principal</span>
+              <input type="month" id="fin-mes" onchange="renderizarFluxoFinanceiro()">
+            </label>
+            <label>
+              <span>Comparar com</span>
+              <input type="month" id="fin-mes-comparar" onchange="renderizarFluxoFinanceiro()">
+            </label>
+          </div>
+        </div>
+        <div id="financeiro-conteudo"></div>
+      </div>
+    </div>
+
+    <!-- ===== ABA: GUIA DE USO ===== -->
+    <div id="aba-guia" class="aba">
+      <div class="guia-wrapper">
+        <div class="guia-topo">
+          <div>
+            <div class="guia-kicker">Consulta rapida</div>
+            <h1>Guia de Uso</h1>
+            <p>Passo a passo para organizar atendimentos, ordens de serviço, equipe e financeiro da oficina.</p>
+          </div>
+        </div>
+
+        <div class="guia-grid">
+          <section class="guia-card">
+            <div class="guia-card-num">01</div>
+            <div>
+              <h2>Inicio</h2>
+              <ol>
+                <li>Abra a tela inicial para ver um resumo da operacao.</li>
+                <li>Confira orçamentos, ordens em andamento, mecânicos ativos e entradas do mês.</li>
+                <li>Use "Abrir agenda" para ir direto ao calendario do dia.</li>
+                <li>Use "Ver fluxo" para acompanhar entradas, saidas e saldo operacional.</li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="guia-card">
+            <div class="guia-card-num">02</div>
+            <div>
+              <h2>Novo Orcamento</h2>
+              <ol>
+                <li>Preencha os dados do cliente, serviço solicitado, contato, veículo (tipo, modelo, placa, ano e km), data e validade.</li>
+                <li>Use o botao "Orcamento" no cabecalho para alternar entre orcamento e relatorio de cobranca.</li>
+                <li>Adicione cada serviço, quantidade/unidade, peças e mão de obra.</li>
+                <li>Use cabecalhos, imagens e opcoes quando precisar organizar a proposta.</li>
+                <li>Aplique desconto, escolha a forma de pagamento e marque observacoes importantes.</li>
+                <li>Clique em "Gerar PDF" para revisar ou baixar o documento, e em "Salvar Orcamento" para guardar no historico.</li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="guia-card">
+            <div class="guia-card-num">03</div>
+            <div>
+              <h2>Historico</h2>
+              <ol>
+                <li>Escolha entre orçamentos e cobranças.</li>
+                <li>Pesquise por cliente, número, placa ou serviço.</li>
+                <li>Aprove propostas e gere a cobrança correspondente sem perder o vínculo com a ordem de serviço.</li>
+                <li>Abra o registro salvo para consultar, editar, gerar PDF ou reutilizar os dados para gerar relatorio de cobranca.</li>
+                <li>Mantenha cobranças separadas dos orçamentos. Somente cobranças pagas são contabilizadas como entradas.</li>
+                <li>Os orçamentos aprovados podem ser usados para criar uma ordem de serviço e depois uma cobrança.</li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="guia-card">
+            <div class="guia-card-num">04</div>
+            <div>
+              <h2>Gestão da Oficina</h2>
+              <ol>
+                <li>Na agenda, acompanhe atendimentos marcados, serviços realizados, compras e despesas.</li>
+                <li>Em "Mecânicos", cadastre nome, telefone, custo e situação da equipe.</li>
+                <li>Em "Serviços realizados", registre o trabalho executado, responsáveis, data, valor e observações.</li>
+                <li>Em "Peças e despesas", registre compras de peças, óleos, ferramentas e gastos da oficina.</li>
+                <li>Em "Ordens de Serviço", cadastre cliente, carro ou moto, placa, ano, quilometragem e serviço solicitado.</li>
+                <li>Use os filtros por mecânico, mês, dia, tipo e status para localizar registros rapidamente.</li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="guia-card">
+            <div class="guia-card-num">05</div>
+            <div>
+              <h2>Fluxo Financeiro</h2>
+              <ol>
+                <li>Selecione o mes principal para analisar o resultado operacional.</li>
+                <li>Use "Comparar com" para ver diferencas entre meses.</li>
+                <li>Confira entradas vindas dos relatorios de cobranca e saidas vindas de insumos, despesas e custos.</li>
+                <li>Analise tabelas e indicadores antes de tomar decisoes de pagamento, compra ou cobranca.</li>
+                <li>Clique em "Gerar relatorio PDF" para baixar um resumo financeiro do periodo.</li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="guia-card">
+            <div class="guia-card-num">06</div>
+            <div>
+              <h2>Configuracoes</h2>
+              <ol>
+                <li>Clique no icone de configuracoes no topo do sistema.</li>
+                <li>Atualize nome da oficina, local, contato, responsável e link público.</li>
+                <li>Use "Logo" para enviar a marca que aparece no menu e nos documentos.</li>
+                <li>Clique em "Salvar" para aplicar as informacoes nos proximos orcamentos e relatorios.</li>
+              </ol>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ABA: GESTÃO DA OFICINA ===== -->
+    <!-- ===== ABA: ADMIN MASTER ===== -->
+    <div id="aba-acessos" class="aba">
+      <div class="acessos-wrapper">
+        <div class="acessos-topo">
+          <div>
+            <div class="acessos-kicker">Usuarios e permissoes</div>
+            <h1>Acessos da equipe</h1>
+            <p>Crie logins para funcionarios e escolha quais modulos cada um pode acessar dentro dos dados da sua empresa.</p>
+          </div>
+          <button class="btn-primario" type="button" onclick="renderizarAcessos()">Atualizar</button>
+        </div>
+
+        <section class="acessos-form-card">
+          <h2>Novo funcionario</h2>
+          <div class="acessos-form-grid">
+            <label><span>Nome</span><input type="text" id="acesso-nome" placeholder="Nome do funcionario"></label>
+            <label><span>E-mail de login</span><input type="email" id="acesso-email" placeholder="funcionario@empresa.com"></label>
+            <label><span>Senha inicial</span><input type="password" id="acesso-senha" placeholder="Minimo 6 caracteres"></label>
+          </div>
+          <div class="acessos-modulos" id="acesso-modulos-form"></div>
+          <div class="acessos-form-acoes">
+            <button class="btn-primario" type="button" onclick="criarSubusuario()">Criar acesso</button>
+          </div>
+        </section>
+
+        <section class="acessos-lista" id="acessos-lista">
+          <div class="admin-vazio">Carregando acessos...</div>
+        </section>
+      </div>
+    </div>
+
+    <div id="aba-admin" class="aba">
+      <div class="admin-wrapper">
+        <div class="admin-topo">
+          <div>
+            <div class="admin-titulo">Admin Master</div>
+            <div class="admin-subtitulo">Gerencie empresas, planos e modulos liberados.</div>
+          </div>
+          <button class="btn-primario" type="button" onclick="renderizarAdminMaster()">Atualizar</button>
+        </div>
+        <div class="admin-planos-info">
+          <div><strong>Essencial</strong><span>Orcamentos e historico.</span></div>
+          <div><strong>Profissional</strong><span>Essencial + submodulos de gestao.</span></div>
+          <div><strong>Completo</strong><span>Todos os modulos e submodulos, incluindo fluxo financeiro.</span></div>
+        </div>
+        <div id="admin-conteudo" class="admin-conteudo"></div>
+      </div>
+    </div>
+
+    <div id="aba-gestao" class="aba">
+      <div class="gestao-wrapper">
+
+        <div class="gestao-sub-nav">
+          <button class="gestao-sub-tab ativo" onclick="mudarSubAba('calendario', this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Agenda da Oficina
+          </button>
+          <button class="gestao-sub-tab" onclick="mudarSubAba('funcionarios', this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Mecânicos
+          </button>
+          <button class="gestao-sub-tab" onclick="mudarSubAba('relatorios', this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14,2 14,8 20,8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            Serviços realizados
+          </button>
+          <button class="gestao-sub-tab" onclick="mudarSubAba('insumos', this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 01-8 0" />
+            </svg>
+            Peças e despesas
+          </button>
+          <button class="gestao-sub-tab" onclick="mudarSubAba('obras', this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="3,18 12,2 21,18" />
+              <line x1="12" y1="9" x2="12" y2="14" />
+              <circle cx="12" cy="16.5" r="0.5" fill="currentColor" />
+            </svg>
+            Ordens de Serviço
+          </button>
+        </div>
+
+        <!-- SUB-ABA: CALENDÁRIO -->
+        <div id="sub-calendario" class="gestao-sub-aba ativo">
+          <div class="cal-topo">
+            <div class="cal-nav">
+              <button onclick="calAnterior()" title="Mês anterior">&#8592;</button>
+              <span id="cal-mes-label">Carregando...</span>
+              <button onclick="calProximo()" title="Próximo mês">&#8594;</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <button class="btn-hoje" onclick="calHoje()">Hoje</button>
+              <button class="btn-primario" onclick="abrirModalAgendamento()" style="padding:8px 16px;font-size:13px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Agendar Atendimento
+              </button>
+              <button class="btn-primario" onclick="abrirModalAgendamento(null, 'etapa_obra')" style="padding:8px 16px;font-size:13px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Novo Serviço
+              </button>
+            </div>
+          </div>
+          <div class="cal-card">
+            <div class="cal-grid" id="cal-grid"></div>
+            <div class="cal-legenda">
+              <div class="cal-legenda-item">
+                <div class="cal-legenda-dot agendamento"></div> Atendimento agendado
+              </div>
+              <div class="cal-legenda-item">
+                <div class="cal-legenda-dot relatorio"></div> Serviço realizado
+              </div>
+              <div class="cal-legenda-item">
+                <div class="cal-legenda-dot insumo"></div> Peça / despesa
+              </div>
+              <div class="cal-legenda-item">
+                <div class="cal-legenda-dot etapa"></div> Etapa do serviço
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-ABA: FUNCIONÁRIOS -->
+        <div id="sub-funcionarios" class="gestao-sub-aba">
+          <div class="func-topo">
+            <div class="func-title-help">
+              <div class="func-topo-titulo">Mecânicos</div>
+              <span class="tooltip-wrap tooltip-funcionarios" data-tooltip="Cadastre os mecânicos da oficina, acompanhe seus custos e mantenha os dados de contato atualizados.">
+                <button type="button" class="manual-save-help-btn" aria-label="Ajuda sobre o cadastro de mecânicos">?</button>
+              </span>
+            </div>
+            <button class="btn-primario" onclick="abrirModalFuncionario()" style="padding:8px 16px;font-size:13px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Novo Mecânico
+            </button>
+          </div>
+          <div class="func-lista" id="func-lista">
+            <div class="hist-vazio">
+              <div class="icone">👷</div>
+              <p>Nenhum mecânico cadastrado.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-ABA: RELATÓRIOS -->
+        <div id="sub-relatorios" class="gestao-sub-aba">
+          <div class="rel-topo">
+            <div class="func-title-help">
+              <div class="func-topo-titulo">Serviços realizados</div>
+              <span class="tooltip-wrap tooltip-relatorios-obra" data-tooltip="Registre os serviços realizados por ordem, data e mecânico, incluindo valores, observações e imagens.">
+                <button type="button" class="manual-save-help-btn" aria-label="Ajuda sobre serviços realizados">?</button>
+              </span>
+            </div>
+            <div class="rel-acoes-topo">
+              <button class="btn-primario" onclick="abrirModalRelatorio()" style="padding:8px 16px;font-size:13px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Registrar Serviço
+              </button>
+            </div>
+          </div>
+          <div class="rel-filtros">
+            <div class="campo">
+              <label>Por Mecânico</label>
+              <select id="filtro-rel-func" onchange="aplicarFiltrosRelatorio()">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Por Mês (AAAA-MM)</label>
+              <input type="month" id="filtro-rel-mes" onchange="aplicarFiltrosRelatorio()">
+            </div>
+            <div class="campo">
+              <label>Por Dia</label>
+              <input type="date" id="filtro-rel-dia" onchange="aplicarFiltrosRelatorio()">
+            </div>
+            <div style="display:flex;align-items:flex-end;">
+              <button class="btn-secundario" onclick="limparFiltrosRel()" style="white-space:nowrap;">Limpar
+                Filtros</button>
+            </div>
+          </div>
+          <div class="rel-lista" id="rel-lista">
+            <div class="hist-vazio">
+              <div class="icone">📋</div>
+              <p>Nenhum serviço realizado registrado.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-ABA: INSUMOS / DESPESAS -->
+        <div id="sub-insumos" class="gestao-sub-aba">
+          <div class="ins-topo">
+            <div class="func-title-help">
+              <div class="func-topo-titulo">Peças e despesas</div>
+              <span class="tooltip-wrap tooltip-insumos-despesas" data-tooltip="Registre compras de peças, óleos, ferramentas, serviços terceirizados e despesas da oficina. Anexe comprovantes e acompanhe as saídas no fluxo financeiro.">
+                <button type="button" class="manual-save-help-btn" aria-label="Ajuda sobre peças e despesas">?</button>
+              </span>
+            </div>
+            <button class="btn-primario" onclick="abrirModalInsumo()" style="padding:8px 16px;font-size:13px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Registrar Peça ou Despesa
+            </button>
+          </div>
+          <div class="ins-filtros">
+            <div class="campo">
+              <label>Por Tipo</label>
+              <select id="filtro-ins-tipo" onchange="aplicarFiltrosInsumos()">
+                <option value="">Todos os tipos</option>
+                <option value="peca">Peças</option>
+                <option value="lubrificante">Óleos e fluidos</option>
+                <option value="ferramenta">Ferramentas</option>
+                <option value="servico_terceirizado">Serviço terceirizado</option>
+                <option value="despesa">Despesa da oficina</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Por Mecânico</label>
+              <select id="filtro-ins-func" onchange="aplicarFiltrosInsumos()">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Por Mês</label>
+              <input type="month" id="filtro-ins-mes" onchange="aplicarFiltrosInsumos()">
+            </div>
+            <div style="display:flex;align-items:flex-end;">
+              <button class="btn-secundario" onclick="limparFiltrosIns()" style="white-space:nowrap;">Limpar</button>
+            </div>
+          </div>
+          <div class="ins-lista" id="ins-lista">
+            <div class="hist-vazio">
+              <div class="icone">🧾</div>
+              <p>Nenhuma peça ou despesa registrada.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-ABA: ORDENS DE SERVIÇO -->
+        <div id="sub-obras" class="gestao-sub-aba">
+          <div class="obras-topo">
+            <div class="obras-title-help">
+              <div class="func-topo-titulo">Ordens de Serviço</div>
+              <span class="tooltip-wrap tooltip-obras" data-tooltip="Acompanhe ordens de serviço em andamento ou concluídas. Cadastre cliente, veículo, placa, quilometragem e mecânico; consulte os orçamentos, cobranças e serviços vinculados.">
+                <button type="button" class="manual-save-help-btn" aria-label="Ajuda sobre o menu de obras">?</button>
+              </span>
+            </div>
+            <button class="btn-primario" onclick="abrirModalObra()" style="padding:8px 16px;font-size:13px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Nova Ordem de Serviço
+            </button>
+          </div>
+          <div class="obras-filtros-bar">
+            <button class="obras-filtro-btn ativo" data-filtro="todos"
+              onclick="setFiltroObras('todos', this)">Todas</button>
+            <button class="obras-filtro-btn" data-filtro="execucao" onclick="setFiltroObras('execucao', this)">Em
+              andamento</button>
+            <button class="obras-filtro-btn" data-filtro="finalizada"
+              onclick="setFiltroObras('finalizada', this)">Concluídas</button>
+          </div>
+          <div class="obras-lista" id="obras-lista">
+            <div class="hist-vazio">
+              <div class="icone">🏗️</div>
+              <p>Nenhuma ordem de serviço cadastrada.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MODAL DETALHE DO DIA -->
+    <div class="modal-overlay" id="modal-detalhe-dia" onclick="if(event.target===this)fecharDetalheDia()">
+      <div class="modal-gestao">
+        <div id="detalhe-corpo"></div>
+        <div class="modal-acoes" style="margin-top:1.5rem;">
+          <button class="btn-secundario" onclick="fecharDetalheDia()">Fechar</button>
+          <button class="btn-primario" onclick="abrirAgendamentoNoDiaSelecionado('agendamento')">+ Agendamento</button>
+          <button class="btn-primario" onclick="abrirAgendamentoNoDiaSelecionado('etapa_obra')">+ Serviço da OS</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL NOVO AGENDAMENTO -->
+    <div class="modal-overlay" id="modal-agendamento" onclick="if(event.target===this)fecharModalAgendamento()">
+      <div class="modal-gestao">
+        <h3 id="agend-modal-titulo">Novo Agendamento</h3>
+        <input type="hidden" id="agend-id-edit">
+        <input type="hidden" id="agend-tipo" value="agendamento">
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="campo">
+            <label id="agend-cliente-label">Cliente / Evento *</label>
+            <input type="text" id="agend-cliente" placeholder="Nome do cliente ou descrição do evento">
+          </div>
+          <div class="campo" id="agend-obra-wrap" style="display:none;">
+            <label>Ordem de Serviço *</label>
+            <select id="agend-obra-select"></select>
+          </div>
+          <div class="grid-3">
+            <div class="campo">
+              <label>Data *</label>
+              <input type="date" id="agend-data">
+            </div>
+            <div class="campo">
+              <label>Hora</label>
+              <input type="time" id="agend-hora">
+            </div>
+            <div class="campo">
+              <label>Mecânico (opcional)</label>
+              <select id="agend-funcionario"></select>
+            </div>
+          </div>
+          <div class="campo" id="agend-funcionarios-multi-wrap" style="display:none;">
+            <label>Mecânicos responsáveis (selecione um ou mais)</label>
+            <div class="func-check-group" id="agend-funcionarios-check">
+              <div style="font-size:13px;color:var(--cinza-texto)">Carregando...</div>
+            </div>
+          </div>
+          <div class="campo">
+            <label>Local</label>
+            <input type="text" id="agend-local" placeholder="Endereço ou local do atendimento">
+          </div>
+          <div class="campo">
+            <label>Observações</label>
+            <textarea id="agend-obs" rows="3" placeholder="Detalhes adicionais..."></textarea>
+          </div>
+        </div>
+        <div class="modal-acoes" style="margin-top:1.5rem;">
+          <button class="btn-secundario" onclick="fecharModalAgendamento()">Cancelar</button>
+          <button class="btn-primario" onclick="salvarAgendamento()">Salvar Agendamento</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL NOVO FUNCIONÁRIO -->
+    <div class="modal-overlay" id="modal-funcionario" onclick="if(event.target===this)fecharModalFuncionario()">
+      <div class="modal-gestao">
+        <h3 id="modal-func-titulo">Novo Mecânico</h3>
+        <input type="hidden" id="func-id-edit">
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="campo">
+            <label>Nome completo *</label>
+            <input type="text" id="func-nome" placeholder="Nome do mecânico">
+          </div>
+          <div class="grid-2">
+            <div class="campo">
+              <label>Data de Admissão</label>
+              <input type="date" id="func-admissao">
+            </div>
+            <div class="campo">
+              <label>Telefone</label>
+              <input type="text" id="func-telefone" placeholder="(xx) xxxxx-xxxx">
+            </div>
+          </div>
+          <div class="campo">
+            <label>Salário / Custo</label>
+            <div class="salario-grupo">
+              <input type="number" id="func-salario" placeholder="0,00" step="0.01" min="0">
+              <select id="func-tipo-salario">
+                <option>Custo Mensal</option>
+                <option>Custo Diário</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-acoes" style="margin-top:1.5rem;">
+          <button class="btn-secundario" onclick="fecharModalFuncionario()">Cancelar</button>
+          <button class="btn-primario" onclick="salvarFuncionario()">Salvar Mecânico</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL NOVO RELATÓRIO -->
+    <div class="modal-overlay" id="modal-relatorio" onclick="if(event.target===this)fecharModalRelatorio()">
+      <div class="modal-gestao">
+        <h3 id="modal-rel-titulo">Registrar Serviço Realizado</h3>
+        <input type="hidden" id="rel-id-edit">
+        <input type="hidden" id="rel-funcionarios-ids-hidden">
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="campo rel-obra-row">
+            <label>Vincular Ordem de Serviço</label>
+            <select id="rel-obra-select">
+              <option value="">Digitar manualmente...</option>
+            </select>
+          </div>
+          <div class="campo" id="rel-obra-manual-wrap">
+            <label>Serviço realizado *</label>
+            <input type="text" id="rel-obra" placeholder="Ex.: revisão completa - placa ABC1D23">
+          </div>
+          <div class="grid-2">
+            <div class="campo">
+              <label>Data *</label>
+              <input type="date" id="rel-data">
+            </div>
+            <div class="campo">
+              <label>Valor do serviço (R$)</label>
+              <input type="number" id="rel-rendimento" placeholder="0,00" step="0.01" min="0">
+            </div>
+          </div>
+          <div class="campo">
+            <label>Mecânicos responsáveis (selecione um ou mais)</label>
+            <div class="func-check-group" id="rel-funcionarios-check">
+              <div style="font-size:13px;color:var(--cinza-texto)">Carregando...</div>
+            </div>
+          </div>
+          <!-- Mantido para compatibilidade com código legado -->
+          <select id="rel-funcionario" style="display:none"></select>
+          <div class="campo">
+            <label>Observações</label>
+            <textarea id="rel-obs" rows="3" placeholder="Detalhes da execução, materiais usados..."></textarea>
+          </div>
+          <div class="campo">
+            <label>Fotos do serviço</label>
+            <div class="rel-imagens-box">
+              <button type="button" class="btn-secundario rel-imagem-upload-btn" onclick="document.getElementById('rel-imagens-input').click()">+ Adicionar Imagens</button>
+              <input type="file" id="rel-imagens-input" accept="image/png,image/jpeg" multiple style="display:none" onchange="handleImagensRelatorio(this)">
+              <small>Use PNG ou JPEG. As imagens ficam salvas e atreladas ao relatório.</small>
+              <div class="rel-imagens-preview" id="rel-imagens-preview"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-acoes" style="margin-top:1.5rem;">
+          <button class="btn-secundario" onclick="fecharModalRelatorio()">Cancelar</button>
+          <button class="btn-primario" onclick="salvarRelatorio()">Salvar Serviço</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL NOVO INSUMO / DESPESA -->
+    <div class="modal-overlay" id="modal-insumo" onclick="if(event.target===this)fecharModalInsumo()">
+      <div class="modal-gestao">
+        <h3 id="modal-ins-titulo">Registrar Peça ou Despesa</h3>
+        <input type="hidden" id="ins-id-edit">
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="grid-2">
+            <div class="campo">
+              <label>Tipo *</label>
+              <select id="ins-tipo">
+                <option value="peca">Peças</option>
+                <option value="lubrificante">Óleos e fluidos</option>
+                <option value="ferramenta">Ferramentas</option>
+                <option value="servico_terceirizado">Serviço terceirizado</option>
+                <option value="despesa">Despesa da oficina</option>
+                <option value="manual">Digitar novo tipo...</option>
+              </select>
+              <input type="text" id="ins-tipo-manual" placeholder="Digite o novo tipo de despesa" style="display:none;margin-top:8px;">
+            </div>
+            <div class="campo">
+              <label>Data *</label>
+              <input type="date" id="ins-data">
+            </div>
+          </div>
+          <div class="campo">
+            <label>Mecânico (opcional)</label>
+            <select id="ins-funcionario"></select>
+          </div>
+          <div class="campo">
+            <label>Valor (R$)</label>
+            <input type="number" id="ins-valor" placeholder="0,00" step="0.01" min="0">
+          </div>
+          <div class="campo">
+            <label>Descrição</label>
+            <input type="text" id="ins-descricao" placeholder="Ex.: jogo de pastilhas, óleo 5W30, ferramenta...">
+          </div>
+          <div class="campo">
+            <label>Observações adicionais</label>
+            <textarea id="ins-obs" rows="2" placeholder="Detalhes extras..."></textarea>
+          </div>
+          <div class="campo">
+            <label>Foto (comprovante / nota fiscal)</label>
+            <div class="ins-foto-preview-wrap">
+              <img id="ins-foto-preview" src="" alt="Pré-visualização">
+              <label class="btn-foto-upload">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Adicionar Foto
+                <input type="file" accept="image/*" style="display:none" onchange="handleFotoInsumo(this)">
+              </label>
+            </div>
+            <input type="hidden" id="ins-foto-base64">
+          </div>
+        </div>
+        <div class="modal-acoes" style="margin-top:1.5rem;">
+          <button class="btn-secundario" onclick="fecharModalInsumo()">Cancelar</button>
+          <button class="btn-primario" onclick="salvarInsumo()">Salvar Registro</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL NOVA ORDEM DE SERVIÇO -->
+    <div class="modal-overlay" id="modal-obra" onclick="if(event.target===this)fecharModalObra()">
+      <div class="modal-gestao">
+        <h3 id="modal-obra-titulo">Nova Ordem de Serviço</h3>
+        <input type="hidden" id="obra-id-edit">
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="campo">
+            <label>Serviço / identificação *</label>
+            <input type="text" id="obra-nome" placeholder="Ex.: revisão completa — placa ABC1D23">
+          </div>
+          <div class="campo">
+            <label>Cliente *</label>
+            <input type="text" id="obra-construtora" placeholder="Nome do proprietário do veículo">
+          </div>
+          <div class="grid-2">
+            <div class="campo">
+              <label>Mecânico responsável</label>
+              <input type="text" id="obra-responsavel" placeholder="Nome do mecânico">
+            </div>
+            <div class="campo">
+              <label>Contato do cliente</label>
+              <input type="text" id="obra-contato-responsavel" placeholder="Telefone ou WhatsApp">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="campo">
+              <label>Data de entrada</label>
+              <input type="date" id="obra-data">
+            </div>
+            <div class="campo">
+              <label>Local / observações</label>
+              <input type="text" id="obra-local" placeholder="Ex.: veículo deixado na oficina">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="campo">
+              <label for="obra-veiculo-tipo">Tipo de veículo</label>
+              <select id="obra-veiculo-tipo">
+                <option value="">Selecione...</option>
+                <option value="Carro">Carro</option>
+                <option value="Moto">Moto</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label for="obra-veiculo-modelo">Marca e modelo</label>
+              <input type="text" id="obra-veiculo-modelo" placeholder="Ex.: Honda Civic, Yamaha Fazer">
+            </div>
+            <div class="campo">
+              <label for="obra-veiculo-placa">Placa</label>
+              <input type="text" id="obra-veiculo-placa" placeholder="ABC1D23" maxlength="8">
+            </div>
+            <div class="campo">
+              <label for="obra-veiculo-ano">Ano</label>
+              <input type="number" id="obra-veiculo-ano" min="1900" max="2100" placeholder="Ex.: 2022">
+            </div>
+            <div class="campo">
+              <label for="obra-veiculo-km">Quilometragem (km)</label>
+              <input type="number" id="obra-veiculo-km" min="0" step="1" placeholder="Ex.: 45000">
+            </div>
+          </div>
+        </div>
+        <div class="modal-acoes" style="margin-top:1.5rem;">
+          <button class="btn-secundario" onclick="fecharModalObra()">Cancelar</button>
+          <button class="btn-primario" onclick="salvarObra()">Salvar Ordem de Serviço</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL LEAD -->
+    <div class="modal-overlay" id="modal-lead" onclick="if(event.target===this)fecharModalLead()">
+      <div class="modal-gestao">
+        <h3 id="lead-modal-titulo">Novo Lead</h3>
+        <input type="hidden" id="lead-id-edit">
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="campo">
+            <label>Nome *</label>
+            <input type="text" id="lead-nome" placeholder="Nome do contato">
+          </div>
+          <div class="grid-2">
+            <div class="campo">
+              <label>Telefone / WhatsApp *</label>
+              <input type="text" id="lead-contato" placeholder="(00) 00000-0000">
+            </div>
+            <div class="campo">
+              <label>E-mail</label>
+              <input type="email" id="lead-email" placeholder="cliente@email.com">
+            </div>
+          </div>
+          <div class="campo">
+            <label>Serviço necessário</label>
+            <input type="text" id="lead-servico" placeholder="Ex.: revisão, freios, troca de óleo">
+          </div>
+          <div class="grid-2">
+            <div class="campo">
+              <label for="lead-veiculo-tipo">Tipo de veículo</label>
+              <select id="lead-veiculo-tipo">
+                <option value="">Selecione...</option>
+                <option value="Carro">Carro</option>
+                <option value="Moto">Moto</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label for="lead-veiculo-modelo">Marca e modelo</label>
+              <input type="text" id="lead-veiculo-modelo" placeholder="Ex.: Honda Civic, Yamaha Fazer">
+            </div>
+            <div class="campo">
+              <label for="lead-veiculo-placa">Placa</label>
+              <input type="text" id="lead-veiculo-placa" placeholder="ABC1D23" maxlength="8">
+            </div>
+          </div>
+          <div class="campo">
+            <label>Local</label>
+            <input type="text" id="lead-local" placeholder="Cidade, bairro ou endereço">
+          </div>
+          <div class="grid-2">
+            <div class="campo">
+              <label>Origem</label>
+              <input type="text" id="lead-origem" placeholder="Site">
+            </div>
+            <div class="campo">
+              <label>Status</label>
+              <select id="lead-status">
+                <option value="novo">Novo</option>
+                <option value="contato">Em contato</option>
+                <option value="proposta">Proposta</option>
+                <option value="convertido">Convertido</option>
+                <option value="perdido">Perdido</option>
+              </select>
+            </div>
+          </div>
+          <div class="campo">
+            <label>Observações</label>
+            <textarea id="lead-observacoes" rows="3" placeholder="Necessidade, prazo, melhor horário para contato..."></textarea>
+          </div>
+        </div>
+        <div class="modal-acoes" style="margin-top:1.5rem;">
+          <button class="btn-secundario" onclick="fecharModalLead()">Cancelar</button>
+          <button class="btn-primario" onclick="salvarLead()">Salvar Solicitação</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL FOTO INSUMO (tela cheia) -->
+    <div id="modal-foto-insumo" onclick="fecharFotoInsumo()">
+      <button class="fechar-foto" onclick="fecharFotoInsumo()">×</button>
+      <img id="foto-insumo-img" src="" alt="Foto insumo">
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <h3 id="modal-titulo">Confirmar</h3>
+        <p id="modal-msg">Tem certeza?</p>
+        <div class="modal-acoes">
+          <button class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+          <button class="btn-primario" id="modal-confirmar">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL PREVIEW PDF -->
+    <div class="modal-overlay pdf-preview-overlay" id="modal-preview-pdf" onclick="if(event.target===this)fecharPreviewPDF()">
+      <div class="pdf-preview-modal">
+        <div class="pdf-preview-topo">
+          <div>
+            <h3>Prévia do PDF</h3>
+            <p>Escolha o layout antes de baixar o arquivo.</p>
+          </div>
+          <button type="button" class="pdf-preview-fechar" onclick="fecharPreviewPDF()" aria-label="Fechar">×</button>
+        </div>
+        <div class="pdf-preview-toolbar">
+          <div class="pdf-layout-selector">
+            <span class="pdf-layout-label">Layout:</span>
+            <button type="button" class="pdf-layout-btn ativo" data-orientacao="portrait" onclick="setPdfOrientacao('portrait')"
+              title="Retrato">
+              <span class="layout-icon icon-portrait"></span>
+              Retrato
+            </button>
+            <button type="button" class="pdf-layout-btn" data-orientacao="landscape" onclick="setPdfOrientacao('landscape')"
+              title="Paisagem">
+              <span class="layout-icon icon-landscape"></span>
+              Paisagem
+            </button>
+          </div>
+          <button type="button" class="btn-primario" onclick="baixarPDFPreview()">
+            Baixar PDF
+          </button>
+        </div>
+        <iframe id="pdf-preview-frame" class="pdf-preview-frame" title="Prévia do PDF"></iframe>
+      </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+  </div><!-- /#app-conteudo -->
+
+  <!-- ===== SCRIPTS (ES Modules) ===== -->
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      window.setTimeout(function () {
+        var loading = document.getElementById('app-loading');
+        var login = document.getElementById('tela-login');
+        var app = document.getElementById('app-conteudo');
+        if (!loading || !login || !app) return;
+        var loadingAtivo = !loading.classList.contains('oculto');
+        var loginVisivel = login.classList.contains('visivel');
+        var appVisivel = app.classList.contains('visivel');
+        if (loadingAtivo && !loginVisivel && !appVisivel) {
+          loading.classList.add('oculto');
+          login.classList.add('visivel');
+        }
+      }, 7000);
+    });
+  </script>
+  <script type="module" src="src/script.js?v=20261005"></script>
+  <script type="module" src="src/gestao.js?v=20260616-relatorio-imagem-multipla-fallback"></script>
+  <script type="module" src="src/funcionario_status.js?v=20260602-login-logo-transparent"></script>
+  <script type="module" src="src/insumos.js?v=20260612-insumo-tipo-manual"></script>
+  <script type="module" src="src/obras.js?v=20260618-relatorios-obra-laranja"></script>
+  <script type="module" src="src/financeiro.js?v=20260616-pagamento-parcial-cobranca"></script>
+  <script type="module" src="src/leads.js?v=20260620-leads-kanban"></script>
+  <script type="module" src="src/auth.js?v=20260609-docs-obras"></script>
+
+  <footer id="footer">
+    <div class="rodape">
+      <strong>Desenvolvido por <span style="color: #4a90d9;"><a href="https://www.sanojsistemas.com.br/"
+            target="_blank">Sanoj Sistemas</a></span></strong><br>
+    </div>
+  </footer>
+</body>
+</html>

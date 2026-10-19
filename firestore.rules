@@ -1,0 +1,113 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isMasterAdmin() {
+      return request.auth != null
+             && request.auth.token.email == 'sanojsistemas@gmail.com';
+    }
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isFuncionarioAtivo(userId) {
+      return request.auth != null
+             && exists(/databases/$(database)/documents/users/$(userId)/subusuarios/$(request.auth.uid))
+             && get(/databases/$(database)/documents/users/$(userId)/subusuarios/$(request.auth.uid)).data.ativo == true;
+    }
+
+    function funcionarioTemModulo(userId, modulo) {
+      return isFuncionarioAtivo(userId)
+             && get(/databases/$(database)/documents/users/$(userId)/subusuarios/$(request.auth.uid)).data.modulosLiberados.hasAny([modulo]);
+    }
+
+    function funcionarioTemSubmoduloGestao(userId, modulo) {
+      return funcionarioTemModulo(userId, modulo) || funcionarioTemModulo(userId, 'gestao');
+    }
+
+    function funcionarioPodeLerColecao(userId, collectionName) {
+      return (collectionName == 'orcamentos' && (funcionarioTemModulo(userId, 'orcamento') || funcionarioTemModulo(userId, 'historico')))
+             || (collectionName == 'agendamentos' && funcionarioTemSubmoduloGestao(userId, 'gestao_calendario'))
+             || (collectionName == 'funcionarios'
+                 && (funcionarioTemSubmoduloGestao(userId, 'gestao_funcionarios')
+                     || funcionarioTemSubmoduloGestao(userId, 'gestao_calendario')
+                     || funcionarioTemSubmoduloGestao(userId, 'gestao_relatorios')
+                     || funcionarioTemSubmoduloGestao(userId, 'gestao_insumos')
+                     || funcionarioTemSubmoduloGestao(userId, 'gestao_despesas')))
+             || (collectionName == 'relatorios' && funcionarioTemSubmoduloGestao(userId, 'gestao_relatorios'))
+             || (collectionName == 'insumos' && (funcionarioTemSubmoduloGestao(userId, 'gestao_insumos') || funcionarioTemSubmoduloGestao(userId, 'gestao_despesas')))
+             || (collectionName == 'obras'
+                 && (funcionarioTemSubmoduloGestao(userId, 'gestao_obras')
+                     || funcionarioTemSubmoduloGestao(userId, 'gestao_calendario')
+                     || funcionarioTemSubmoduloGestao(userId, 'gestao_relatorios')))
+             || (collectionName == 'obraDocumentos' && funcionarioTemSubmoduloGestao(userId, 'gestao_obras'));
+    }
+
+    function funcionarioPodeEscreverColecao(userId, collectionName) {
+      return (collectionName == 'orcamentos' && funcionarioTemModulo(userId, 'orcamento'))
+             || (collectionName == 'agendamentos' && funcionarioTemSubmoduloGestao(userId, 'gestao_calendario'))
+             || (collectionName == 'funcionarios' && funcionarioTemSubmoduloGestao(userId, 'gestao_funcionarios'))
+             || (collectionName == 'relatorios' && funcionarioTemSubmoduloGestao(userId, 'gestao_relatorios'))
+             || (collectionName == 'insumos' && (funcionarioTemSubmoduloGestao(userId, 'gestao_insumos') || funcionarioTemSubmoduloGestao(userId, 'gestao_despesas')))
+             || (collectionName == 'obras' && funcionarioTemSubmoduloGestao(userId, 'gestao_obras'))
+             || (collectionName == 'obraDocumentos' && funcionarioTemSubmoduloGestao(userId, 'gestao_obras'));
+    }
+
+    function canAccessCompany(userId) {
+      return isOwner(userId) || isMasterAdmin() || isFuncionarioAtivo(userId);
+    }
+
+    function isFuncionarioProfileOwnedByRequester() {
+      return request.auth != null
+             && request.resource.data.tipoUsuario == 'funcionario'
+             && request.resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if canAccessCompany(userId)
+                  || (request.auth != null
+                      && resource.data.tipoUsuario == 'funcionario'
+                      && resource.data.ownerUid == request.auth.uid);
+      allow create: if isOwner(userId) || isMasterAdmin() || isFuncionarioProfileOwnedByRequester();
+      allow update: if isOwner(userId) || isMasterAdmin()
+                    || (request.auth != null
+                        && resource.data.tipoUsuario == 'funcionario'
+                        && resource.data.ownerUid == request.auth.uid
+                        && request.resource.data.ownerUid == resource.data.ownerUid);
+      allow delete: if isOwner(userId) || isMasterAdmin();
+
+      match /subusuarios/{subUserId} {
+        allow read: if isOwner(userId) || isMasterAdmin() || (request.auth != null && request.auth.uid == subUserId);
+        allow write: if isOwner(userId) || isMasterAdmin();
+      }
+
+      match /{collection}/{docId} {
+        allow read: if collection != 'subusuarios'
+                    && (isOwner(userId) || isMasterAdmin() || funcionarioPodeLerColecao(userId, collection));
+        allow write: if collection != 'subusuarios'
+                     && (isOwner(userId) || isMasterAdmin() || funcionarioPodeEscreverColecao(userId, collection));
+      }
+    }
+
+    match /publicLeadForms/{userId} {
+      allow read: if resource.data.ativo == true
+                  || isOwner(userId) || isMasterAdmin() || funcionarioTemModulo(userId, 'leads');
+      allow write: if request.auth != null
+                   && (isOwner(userId) || isMasterAdmin() || funcionarioTemModulo(userId, 'leads'));
+
+      match /leads/{leadId} {
+        allow create: if get(/databases/$(database)/documents/publicLeadForms/$(userId)).data.ativo == true
+                      && request.resource.data.nome is string
+                      && request.resource.data.contato is string
+                      && request.resource.data.status == 'novo';
+        allow read, update, delete: if isOwner(userId) || isMasterAdmin() || funcionarioTemModulo(userId, 'leads');
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
